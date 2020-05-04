@@ -18,6 +18,9 @@
    rel="stylesheet">
    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600&display=swap&subset=cyrillic"
    rel="stylesheet">
+   @hasSection('lib-css')
+        @yield('lib-css')
+    @endif
 
    <title>@yield('title')</title>
  </head>
@@ -34,7 +37,6 @@
     @hasSection('scriptUser')
         @yield('scriptUser')
     @endif
-
     @hasSection('script')
         @yield('script')
     @endif

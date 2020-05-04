@@ -89,15 +89,9 @@
                             {{ $groupWork->kind_name }}
                         </td>
                         <td>
-                            @if (isset($groupWork->work[0]))
                             <a href="{{ route('admin.worksShow', $groupWork->id) }}">
                                 <img class="dep-link" src="{{ asset('img/link.png') }}" alt="dep-link">
                             </a>
-                            @else
-                                <img class="dep-link" src="{{ asset('img/link.png') }}" alt="dep-link"
-                                style="opacity:.5"
-                                >
-                            @endif
                         </td>
                         <td style="padding: 0; text-align:left;">
                            {{-- <textarea readonly style="width:100%; height:200px; resize:none; border:none;">{{ $question->content }}</textarea> --}}

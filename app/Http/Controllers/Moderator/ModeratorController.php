@@ -50,6 +50,7 @@ class ModeratorController extends Controller
 
     public function index(Request $re)
     {
+        $count_work_time = 0;
         $employees = Employee::where('department_id', '=', Auth::user()->employee->department_id)->get();
         $user_id = '';
         if($re->input('user')){
@@ -115,7 +116,8 @@ class ModeratorController extends Controller
         $count_work = PlanWork::where('departament_id', '=', Auth::user()->employee->department_id)->count();
         $count_people = Employee::where('department_id', '=', Auth::user()->employee->department_id)->count();
         $count_req = AccountCreationRequest::where('departament', '=', Auth::user()->employee->department_id)->count();
-        return view('moderator.index', compact('count_req', 'count_people', 'count_work', 'isSelected', 'employees', 'user_email', 'type_work_count', 'resultDateFirst', 'max_date', 'count_work_good', 'count_work_time','old_date'));
+        $count_work_good = 0;
+        return view('moderator.index', compact('count_req', 'count_people', 'count_work', 'isSelected', 'employees', 'type_work_count', 'resultDateFirst', 'max_date', 'count_work_good', 'count_work_time','old_date'));
     }
 
     public function account(){
@@ -388,12 +390,14 @@ class ModeratorController extends Controller
             $works = $val['value']; $get_req = $val['get'];
         }else{
             $works = PlanWork::where('departament_id', '=', $dep_id)
+                ->groupBy(['title', 'work_id'])
                 ->with('work')
                 ->paginate(15);
         }
 
+
         if($works->count() == 0){ // записи отсутствуют
-            return view('moderator.my-works', ['noWorks' => 'Публікації відсутні']);
+            return view('moderator.my-works', ['noWorks' => 'Роботи відсутні']);
         }else{
             return view('moderator.my-works', compact('works', 'get_req'));
         }
@@ -403,6 +407,13 @@ class ModeratorController extends Controller
 
         $user_id = Auth::user()->employee->departament->id;
         $work = PlanWork::where('id', '=', $id)->first();
+
+        $all_works = PlanWork::where([
+            'title' => $work->title,
+            'departament_id' => $user_id,
+            'work_id' => $work->work_id
+        ])->with('employee')->get();
+
         if($user_id == $work->departament_id){
 
             $work_kinds = WorkKind::all();
@@ -413,11 +424,24 @@ class ModeratorController extends Controller
             $jsonWorkKinds = response()->json($work_kinds);
             $jsonTypeWork = response()->json($type_work);
 
-            return view('moderator.work', compact('work', 'works' ,'work_kinds','type_work', 'jsonWork', 'jsonWorkKinds', 'jsonTypeWork'));
+            return view('moderator.work', compact('all_works', 'works' ,'work_kinds','type_work', 'jsonWork', 'jsonWorkKinds', 'jsonTypeWork'));
         }else{
             return redirect()->route('moderator.works');
         }
 
+    }
+
+    public function changeStatusWork(Request $request){
+        $plan_work = PlanWork::where([
+            ['departament_id', '=', Auth::user()->employee->departament->id],
+            ['id', '=', $request->input('work_id')]
+        ])->first();
+        if($plan_work->count() != 0){
+            $plan_work->status = $request->input('status_work');
+            $plan_work->save();
+            return back();
+        }
+        return back();
     }
 
     public function deleteWork(Request $request){
@@ -426,8 +450,25 @@ class ModeratorController extends Controller
             return redirect()->route('moderator.works');
         }
         $user_id = Auth::user()->employee->departament->id;
-        $work = PlanWork::where('id', '=', $request['work_id'])->first();
+        $work = PlanWork::where('id', '=', $request['work_id'])->with('employee.user')->first();
         if($user_id == $work->departament_id){
+        // создание фейковго письма
+        $message = new Feedback;
+        $message->title = 'Видалення вашої роботи ' . $work->title;
+        $message->user_id = $work->employee->user->id;
+        $message->content = 'Видалення вашої роботи ' . $work->title;
+        $message->type_user = 2;
+        $message->departament_id = Auth::user()->employee->department_id;
+        $message->save();
+        // ответ на это сообщение
+        $answer = new FeedbackAnser;
+        $answer->feedback_id = $message->id;
+        $answer->anser = $request['text-delete'];
+        $answer->asked_user = $work->employee->user->id;
+        $answer->answered_user = Auth::user()->id;
+        $answer->asked_user_read = false;
+        $answer->save();
+        $message->update(['status' => true]);
             $work->delete();
             return redirect()->route('moderator.works');
         }else{
@@ -436,45 +477,12 @@ class ModeratorController extends Controller
 
     }
 
-    public function editWork(NewWorkRequest $request){
-        $valid = $request->validated();
 
-        $work = PlanWork::where('id', '=', $valid['work-id'])->first();
-        $user_id = Auth::user()->employee->departament->id;
-
-        if($user_id != $work->departament_id){
-            return redirect()->route('moderator.works');
-        }
-
-        $itsStatus = false;
-        if($valid['status'] == 'yes'){
-            $itsStatus = true;
-        }
-
-        $newDate = [
-            'employee_id' => $work->employee_id,
-            'departament_id' => $work->departament_id,
-            'work_id' => $work->work_id,
-            'academic_year' => $work->academic_year,
-            'title' => $valid['work-title'],
-            'description' => $valid['desc-work'],
-            'norm_semester_1_plan' => $valid['norma-1-plane'],
-            'norm_semester_2_plan' => $valid['norma-2-plane'],
-            'count_plan' => $valid['count-plane'],
-            'percentage_plan' => $valid['share-plane'],
-            'norm_semester_1_fact' => $valid['norma-1-fact'],
-            'norm_semester_2_fact' => $valid['norma-2-fact'],
-            'count_fact' => $valid['count-fact'],
-            'percentage_fact' => $valid['share-fact'],
-            'status' => $itsStatus
-        ];
-        try {
-            $work->update($newDate);
-        } catch (\Throwable $th) {
-            return redirect()->route('moderator.work', ['id' => $valid['work-id']])->with(['errorUpdate' => $th->getMessage()]);
-        }
-        return redirect()->route('moderator.work', ['id' => $valid['work-id']])->with(['successWork' => 'Робота була оновлена']);
-
+    public function updateWorkPart(Request $request){
+        dd($request->all());
+        // обновления поля с долей человека 
+        
+        
     }
 
     public function addWork(){

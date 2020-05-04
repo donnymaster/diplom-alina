@@ -33,6 +33,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 
 use App\Services\AddFileService;
+use App\Services\GetInfoUniversity;
 use App\Services\MakeWorkService;
 use App\Services\SendUserMessage;
 use App\Services\SortUserWork;
@@ -49,6 +50,8 @@ class UserController extends Controller
      */
     public function index(Request $re)
     {
+        $max_date = 0;
+        $old_date = 0;
         if($re->input('val-date-1')){
             $resultDateFirst = DB::select("select month(created_at) as mn, count(*) as cont
             from plan_works
@@ -105,19 +108,8 @@ class UserController extends Controller
             $type_work_count[$item->name_type_work] = $count[0]->cn;
         }
 
-        return view('user.index', compact('user_email', 'type_work_count', 'resultDateFirst', 'max_date', 'count_work_good', 'count_work_time','old_date'));
+        return view('user.index', compact( 'type_work_count', 'resultDateFirst', 'max_date', 'count_work_good', 'count_work_time','old_date'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -139,29 +131,6 @@ class UserController extends Controller
         }
 
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
-
 
     public function account(){
 
@@ -212,63 +181,10 @@ class UserController extends Controller
 
     }
 
-    public function addWork(){
-        $user = Auth::user();
-        $employee = $user->employee->name . ' ' . $user->employee->surname . ' ' . $user->employee->patronymic;
-        $facultyName = $user->employee->departament->faculty->faculty_name;
-        $departamentName =  $user->employee->departament->departament_name;
-        $year = Carbon::now()->year;
-        $date = Carbon::today()->toDateString();
-
-        $work_kinds = WorkKind::all();
-        $works = Work::all();
-        $type_work = TypeWork::all();
-
-        $jsonWork = response()->json($works);
-        $jsonWorkKinds = response()->json($work_kinds);
-        $jsonTypeWork = response()->json($type_work);
-
-        return view('user.add-work', compact('works' ,'work_kinds','type_work' ,'employee', 'facultyName', 'departamentName', 'year', 'date', 'jsonWork', 'jsonWorkKinds', 'jsonTypeWork'));
-    }
-    public function feedback(){
-        return view('user.feedback');
-    }
-
-    public function sendMessageUser(SendMessageUserRequest $request){
-
-        $validated = $request->validated();
-
-        $message = new Feedback;
-        $tema = $validated['tema'];
-        $message->title = $tema;
-        $message->user_id = Auth::user()->id;
-        $message->content = $validated['content'];
-        $message->type_user = $validated['type-user'];
-        $message->departament_id = Auth::user()->employee->department_id;
-
-        if($request->file('attachment')){
-            $files = new AddFileService($request->file('attachment'));
-            $json = $files->sendFileToFolder('feedback');
-            $message->materials = json_encode($json);
-        }
-        $message->save();
-        return redirect()->route('user.feedback')->with(['successFeedback' => 'Ваше повідомлення надіслано.']);
-
-
-    }
-
-    public function work($id){
-       return view('user.work', compact('id'));
-    }
 
     public function newUser(){
-
-        $posts = Post::all();
-        $degrees = AcademicDegree::all();
-        $departaments = Departments::all();
-        $facultes = Facultes::all();
-        $allDep = response()->json($departaments);
-        return view('user.new-user', compact('posts', 'degrees', 'allDep', 'facultes'));
+        $info = GetInfoUniversity::get();
+        return view('user.new-user', $info);
     }
 
     public function resetEmail(ResetEmailRequest $request){
@@ -279,18 +195,27 @@ class UserController extends Controller
 
         if($value){
             if(Auth::user()->role->role_name == 'moderator'){
-                return redirect()->route('moderator.account')->with(['successEmail' => 'Пошта оновлена.']);
+                return redirect()
+                        ->route('moderator.account')
+                        ->with(['successEmail' => 'Пошта оновлена.']);
             }elseif(Auth::user()->role->role_name == 'user'){
-                return redirect()->route('user.account')->with(['successEmail' => 'Пошта оновлена.']);
+                return redirect()
+                        ->route('user.account')
+                        ->with(['successEmail' => 'Пошта оновлена.']);
             }elseif(Auth::user()->role->role_name == 'admin'){
-                return redirect()->route('admin.account')->with(['successEmail' => 'Пошта оновлена.']);
+                return redirect()
+                        ->route('admin.account')
+                        ->with(['successEmail' => 'Пошта оновлена.']);
             }
         }else{
-            return back()->with(['errorReset' => 'Пошта не оновлена! Спробуйте ще раз'])->withInput();
+            return back()
+                    ->with(['errorReset' => 'Пошта не оновлена! Спробуйте ще раз'])
+                    ->withInput();
         }
     }
 
     public function resetPassword(ResetPasswordRequest $request){
+
         $validated = $request->validated();
         if(!Hash::check($validated['old-password'], Auth::user()->password)){
             return back()->with(['errorPass' => 'Введений вами пароль не збігається з старим паролем!']);
@@ -302,11 +227,17 @@ class UserController extends Controller
 
         if($value){
             if(Auth::user()->role->role_name == 'moderator'){
-                return redirect()->route('moderator.account')->with(['successPass' => 'Пароль оновлено!']);
+                return redirect()
+                        ->route('moderator.account')
+                        ->with(['successPass' => 'Пароль оновлено!']);
             }elseif(Auth::user()->role->role_name == 'user'){
-                return redirect()->route('user.account')->with(['successPass' => 'Пароль оновлено!']);
+                return redirect()
+                        ->route('user.account')
+                        ->with(['successPass' => 'Пароль оновлено!']);
             }elseif(Auth::user()->role->role_name == 'admin'){
-                return redirect()->route('admin.account')->with(['successPass' => 'Пароль оновлено!']);
+                return redirect()
+                        ->route('admin.account')
+                        ->with(['successPass' => 'Пароль оновлено!']);
             }
         }else{
             return back()->with(['errorPass' => 'Пароль не оновлено! Спробуйте ще раз']);
@@ -314,7 +245,7 @@ class UserController extends Controller
         }
     }
 
-     function sendMessage(DeleteAccountRequest $request)
+     function sendMessageDeleteAccount(DeleteAccountRequest $request)
     {
         $validated = $request->validated();
         $title = 'Видалення акаунта';
@@ -330,137 +261,5 @@ class UserController extends Controller
 
         return redirect()->route('user.account')->with(['successSend' => 'Повідомлення відправлено!']);
 
-    }
-
-
-    public function CreateWork(NewWorkRequest $request){
-
-        $validated = $request->validated();
-
-        $work = MakeWorkService::make($validated);
-
-        if($request->file('attachment')){
-            $files = new AddFileService($request->file('attachment'));
-            $json = $files->sendFileToFolder('works');  // отправляем файлы в папку app/uploads/{id}/works/hash/files
-            $work->materials = json_encode($json);
-        }
-
-        try {
-            $work->save();
-        } catch (\Throwable $th) {
-            return back()
-                ->with(['errorMake' => $th->getMessage()])
-                ->withInput();
-        }
-        return redirect()
-            ->route('user.addWork')
-            ->with(['successWork' => 'Робота додана! На протязі декількох днів модератор обробить вашу роботу.']);
-    }
-    public function MyMessage(Request $request){
-
-        $user_id = Auth::user()->id;
-        $get_req = array();
-
-        if($request->input('value') && $request->input('type-sort')){
-            switch ($request->input('value')) {
-                case '1':
-                        if($request->input('type-sort') == 'desc'){
-                            $answers = FeedbackAnser::orderBy('asked_user_read', 'desc')
-                                ->where('asked_user', '=', $user_id)
-                                ->with('user_answered', 'feedback')
-                                ->paginate(15);
-                            $get_req['val'] = 1; $get_req['type']= 'desc';
-                        }else{
-                            $answers = FeedbackAnser::orderBy('asked_user_read', 'asc')
-                                ->where('asked_user', '=', $user_id)
-                                ->with('user_answered', 'feedback')
-                                ->paginate(15);
-                            $get_req['val'] = 1; $get_req['type']= 'asc';
-                        }
-                    break;
-                case '2':
-                        if($request->input('type-sort') == 'desc'){
-                            $answers = FeedbackAnser::orderBy('created_at', 'desc')
-                                ->where('asked_user', '=', $user_id)
-                                ->with('user_answered', 'feedback')
-                                ->paginate(15);
-                            $get_req['val'] = 2; $get_req['type']= 'desc';
-                        }else{
-                            $answers = FeedbackAnser::orderBy('created_at', 'asc')
-                                ->where('asked_user', '=', $user_id)
-                                ->with('user_answered', 'feedback')
-                                ->paginate(15);
-                            $get_req['val'] = 2; $get_req['type']= 'asc';
-                        }
-                    break;
-                default:
-                    # code...
-                    break;
-            }
-        }else{
-        $answers = FeedbackAnser::orderBy('id', 'desc')
-            ->where('asked_user', '=', $user_id)
-            ->with('user_answered', 'feedback')
-            ->paginate(15);
-        }
-
-
-        if($answers->count() == 0){ // записи отсутствуют
-            return view('user.my-message', ['noMessage' => 'Повідомлення відсутні']);
-        }else{
-            $count_no_read = FeedbackAnser::where([['asked_user_read', '=', false],['asked_user', '=', $user_id]])->count();
-
-            return view('user.my-message', compact('answers', 'count_no_read', 'get_req'));
-        }
-    }
-
-    public function deleteAllMessage(Request $request){
-
-        $user_id = Auth::user()->id;
-
-        try {
-            FeedbackAnser::where('asked_user', '=', $user_id)->delete();
-        } catch (\Throwable $th) {
-            return back()->with(['errorDeleteAll' => $th->getMessage()]);
-        }
-        if(Auth::user()->role->role_name == 'user'){
-            return redirect()->route('user.message')->with(['successDeleteAll' => 'Повідомлення видалені!']);
-        }elseif(Auth::user()->role->role_name == 'moderator'){
-            return redirect()->route('moderator.myMessage')->with(['successDeleteAll' => 'Повідомлення видалені!']);
-        }
-    }
-
-    public function changeStatusMessage(Request $request, $id){
-
-        $user_id = Auth::user()->id;
-
-        if(FeedbackAnser::where([
-            ['asked_user', '=', $user_id],
-            ['id', '=', $id ]
-        ])->count() != 0){
-            FeedbackAnser::where('id', '=', $id)->update(['asked_user_read' => true]);
-        }
-    }
-
-    public function deleteMessage(Request $request, $id){
-        $user_id = Auth::user()->id;
-
-        if(FeedbackAnser::where([
-            ['asked_user', '=', $user_id],
-            ['id', '=', $id ]
-        ])->count() != 0){
-            FeedbackAnser::where('id', '=', $id)->delete();
-            if(Auth::user()->role->role_name == 'user'){
-                return redirect()->route('user.message');
-            }elseif(Auth::user()->role->role_name == 'moderator'){
-                return redirect()->route('moderator.myMessage');
-            }
-        }else{
-            if(Auth::user()->role->role_name == 'user'){
-                return redirect()->route('user.message');
-            }elseif(Auth::user()->role->role_name == 'moderator'){
-                return redirect()->route('moderator.myMessage');
-            }
-        }
     }
 }

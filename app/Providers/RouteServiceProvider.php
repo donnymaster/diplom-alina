@@ -39,6 +39,12 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->mapWebRoutes();
 
+        $this->mapUserWebRoutes();
+
+        $this->mapModeratorWebRoutes();
+
+        $this->mapAdminWebRoutes();
+
         //
     }
 
@@ -70,4 +76,45 @@ class RouteServiceProvider extends ServiceProvider
              ->namespace($this->namespace)
              ->group(base_path('routes/api.php'));
     }
+    /**
+     * Define the "web-user" routes for the application.
+     *
+     * These routes are typically stateless.
+     *
+     * @return void
+     */
+    protected function mapUserWebRoutes()
+    {
+        Route::middleware(['web', 'auth'])
+             ->namespace($this->namespace)
+             ->group(base_path('routes/core/user.php'));
+    }
+    /**
+     * Define the "web-moderator" routes for the application.
+     *
+     * These routes are typically stateless.
+     *
+     * @return void
+     */
+    protected function mapModeratorWebRoutes()
+    {
+        Route::middleware(['web', 'auth'])
+             ->namespace($this->namespace)
+             ->group(base_path('routes/core/moderator.php'));
+    }
+
+    /**
+     * Define the "web-admin" routes for the application.
+     *
+     * These routes are typically stateless.
+     *
+     * @return void
+     */
+    protected function mapAdminWebRoutes()
+    {
+        Route::middleware(['web', 'auth'])
+             ->namespace($this->namespace)
+             ->group(base_path('routes/core/admin.php'));
+    }
+
 }

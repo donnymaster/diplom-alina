@@ -8,25 +8,27 @@ use Illuminate\Support\Facades\Auth;
 
 class MakeWorkService{
 
-    public static function make($valid, $st = false){
+    public static function make($valid, $request, $st = false){
 
         $work = new PlanWork;
 
         $work->employee_id = Auth::user()->employee->id;
-        $work->departament_id = Auth::user()->employee->departament->id;
+        $work->departament_id = $valid['departament'];
         $work->academic_year = Carbon::now()->year;
         $work->work_id = $valid['work'];
         $work->description = $valid['desc-work'];
         $work->title = $valid['work-title'];
-        $work->norm_semester_1_plan = $valid['norma-1-plane'];
-        $work->norm_semester_2_plan = $valid['norma-2-plane'];
-        $work->count_plan = $valid['count-plane'];
-        $work->percentage_plan = $valid['share-plane'];
-        $work->norm_semester_1_fact = $valid['norma-1-fact'];
-        $work->norm_semester_2_fact = $valid['norma-2-fact'];
-        $work->count_fact = $valid['count-fact'];
-        $work->percentage_fact = $valid['share-fact'];
+        $work->user_count = $valid['user-count'];
+        if($valid['category_work']){
+            $work->category_id = $valid['category_work'];
+        }
         $work->status = $st;
+
+        if($request->file('attachment')){
+            $files = new AddFileService($request->file('attachment'));
+            $json = $files->sendFileToFolder('works');  // отправляем файлы в папку app/uploads/{id}/works/hash/files
+            $work->materials = json_encode($json);
+        }
 
         return $work;
 

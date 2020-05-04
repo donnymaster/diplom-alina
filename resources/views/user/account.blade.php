@@ -168,7 +168,7 @@
             <div class="exit">
                 <img class="hendler-close" src={{ asset('img/window-close.png') }} alt="close">
             </div>
-            <form action="{{ route('user.sendMessange') }}" method="POST">
+            <form action="{{ route('user.delete-account') }}" method="POST">
                 @csrf
                 <label for="contentCause">
                     <textarea required name="content-message" id="contentCause" class="text-input"></textarea>

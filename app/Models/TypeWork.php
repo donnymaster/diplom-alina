@@ -13,4 +13,8 @@ class TypeWork extends Model
     public function work_kind(){
         return $this->hasOne('App\Models\WorkKind', 'type_work_id');
     }
+
+    public function category_name(){
+        return $this->belongsTo('App\Models\CategoryName');
+    }
 }

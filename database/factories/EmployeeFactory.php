@@ -12,6 +12,6 @@ $factory->define(Employee::class, function (Faker $faker) {
         'patronymic' => $faker->lastName(),
         'post_id' => rand(1,7),
         'degree_id' => rand(1,2),
-        'department_id' => rand(1,8)
+        'department_id' => rand(1,6)
     ];
 });

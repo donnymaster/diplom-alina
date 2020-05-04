@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class TypeWork extends Migration
+class CategoryNameAddTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class TypeWork extends Migration
      */
     public function up()
     {
-        Schema::create('type-works', function (Blueprint $table) {
+        Schema::create('category_name', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name_type_work');
-            $table->unsignedBigInteger('category_name_id')->nullable();
+            $table->string('name');
 
             $table->softDeletesTz();
             $table->timestampsTz();
@@ -30,6 +29,6 @@ class TypeWork extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('type-works');
+        Schema::dropIfExists('category_name');
     }
 }

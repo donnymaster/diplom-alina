@@ -1,5 +1,5 @@
 @extends('moderator.layout.template')
-@section('title', 'Публікації по кафедрі')
+@section('title', 'Роботи по кафедрі')
 @section('content')
     <div class="page__title">
         <a href="{{ route('moderator.index') }}">Головна</a>
@@ -82,22 +82,10 @@
                     Дата створення роботи
                 </th>
                 <th>
-                    Частка за планом [%]
-                </th>
-                <th>
-                    Частка за фактом [%]
-                </th>
-                <th>
                     Вид праці <span title="Тип виконаної роботи">*</span>
                 </th>
                 <th>
                     Редагувати
-                </th>
-                <th style="min-width: 90px;">
-                    Статус
-                </th>
-                <th>
-                    Видалити
                 </th>
             </tr>
 
@@ -110,12 +98,6 @@
                         {{ $work->created_at->format('m/d/Y') }}
                     </td>
                     <td>
-                        {{ $work->percentage_plan }}
-                    </td>
-                    <td>
-                        {{ $work->percentage_fact }}
-                    </td>
-                    <td>
                         {{ $work->work->indicator }}
                     </td>
                     <td>
@@ -124,29 +106,6 @@
                                 <img data-name-work="{{ $work->title }}" data-modal="edit" src="{{ asset('img/spec-edit.png') }}" alt="edit">
                             </a>
                         </div>
-                    </td>
-                    <td>
-                        @if ($work->status)
-                            <div class="status-ok">
-                                <p>схвалено</p>
-                            </div>
-                        @else
-                        <div class="status-pend">
-                            <p>в обробці</p>
-                        </div>
-                        @endif
-                    </td>
-                    <td>
-                        <form id="delete-work" action="{{ route('moderator.deleteWork') }}"
-                            style="display: flex;justify-content: center;"
-                        method="post">
-                            @csrf
-                            <input type="text" name="work_id" hidden value="{{$work->id}}">
-                            <img src="{{ asset('img/delete-user.png') }}"
-                            onclick="event.preventDefault();
-                                document.getElementById('delete-work').submit();"
-                            alt="delete">
-                        </form>
                     </td>
                 </tr>
             @endforeach

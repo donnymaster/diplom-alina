@@ -534,6 +534,7 @@ class AdministratorController extends Controller
         $normPoint = $re->input('norm-point') ? $re->input('norm-point') : '0';
         $normHour = $re->input('norm-hour') ? $re->input('norm-hour') : '0';
 
+        $work->number_indicator = 0;
         $work->works_kinds_id = $re->input('works_kinds_id');
         $work->indicator = $re->input('indicator');
         $work->norm_desc = $re->input('norm_desc');
@@ -544,12 +545,16 @@ class AdministratorController extends Controller
         try {
             $work->save();
         } catch (\Throwable $th) {
+            // dd($th->getMessage());
             return back();
         }
         return back();
     }
 
     public function departmentAnalytics(Request $re, $dep_id){
+        $count_work_good = 0;
+        $count_work_time = 0;
+        $old_date = 0;
         $dep_name = Departments::where('id', '=', $dep_id)->first()->departament_name;
         $employees = Employee::where('department_id', '=', $dep_id)->get();
 
@@ -621,7 +626,7 @@ class AdministratorController extends Controller
         $count_work = PlanWork::where('departament_id', '=', $dep_id)->count();
         $count_people = Employee::where('department_id', '=', $dep_id)->count();
         $count_req = AccountCreationRequest::where('departament', '=', $dep_id)->count();
-        return view('administrator.analytics', compact('dep_name','count_req', 'count_people', 'count_work', 'isSelected', 'employees', 'user_email', 'type_work_count', 'resultDateFirst', 'max_date', 'count_work_good', 'count_work_time','old_date'));
+        return view('administrator.analytics', compact('dep_name','count_req', 'count_people', 'count_work', 'isSelected', 'employees', 'type_work_count', 'resultDateFirst', 'max_date', 'count_work_good', 'count_work_time','old_date'));
 
     }
 }

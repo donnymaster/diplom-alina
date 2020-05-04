@@ -18,17 +18,11 @@ class AddPlanWorks extends Migration
             $table->unsignedBigInteger('employee_id');
             $table->unsignedBigInteger('departament_id');
             $table->unsignedBigInteger('work_id');
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->string('academic_year');
             $table->string('title');
             $table->text('description');
-            $table->integer('norm_semester_1_plan');
-            $table->integer('norm_semester_2_plan');
-            $table->integer('count_plan');
-            $table->integer('percentage_plan');
-            $table->integer('norm_semester_1_fact');
-            $table->integer('norm_semester_2_fact');
-            $table->integer('count_fact');
-            $table->integer('percentage_fact');
+            $table->float('user_count');
             $table->json('materials')->nullable();
             $table->boolean('status')->default(false);
 

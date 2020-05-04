@@ -36,9 +36,8 @@
 
             <div class="group-label">
                 <label for="departament_id">Кафедра</label>
-            <select id="departament_id" name="departament">
-
-            </select>
+                <select id="departament_id" name="departament">
+                </select>
             </div>
 
             <div class="group-label">

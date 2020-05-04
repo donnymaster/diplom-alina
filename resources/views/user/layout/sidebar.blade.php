@@ -12,13 +12,13 @@
             <li>
             <a href="{{ route('user.addWork') }}">
                     <img src="{{ asset('img/icon1.png') }}" alt="1">
-                    <p>Розмістити публікацію</p>
+                    <p>Розмістити роботу</p>
                 </a>
             </li>
             <li>
             <a href="{{ route('user.works') }}">
                     <img src="{{ asset('img/icon2.png') }}" alt="1">
-                    <p>Мої публікації</p>
+                    <p>Мої роботи</p>
                 </a>
             </li>
             <li>

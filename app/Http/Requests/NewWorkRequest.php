@@ -55,18 +55,12 @@ class NewWorkRequest extends FormRequest
     public function rules()
     {
         return [
-            'norma-1-plane' => 'required|numeric',
-            'norma-2-plane' => 'required|numeric',
-            'count-plane' => 'required|numeric',
-            'share-plane' => 'required|numeric',
-            'norma-1-fact' => 'required|numeric',
-            'norma-2-fact' => 'required|numeric',
-            'count-fact' => 'required|numeric',
-            'share-fact' => 'required|numeric',
             'work' => 'required|exists:works,id',
-            'work-id' => 'numeric',
             'work-title' => 'required|min:6|max:255',
             'desc-work' => 'required|min:6|max:65535',
+            'category_work' => 'string',
+            'user-count' => 'required',
+            'departament' => 'required|string',
             'status' => 'string'
 
         ];

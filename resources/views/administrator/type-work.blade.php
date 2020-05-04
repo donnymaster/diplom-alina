@@ -87,15 +87,9 @@
                             {{ $typeWork->name_type_work }}
                         </td>
                         <td>
-                            @if ($typeWork->work_kind != null)
                             <a href="{{ route('admin.workGroupShow', $typeWork->id) }}">
                                 <img class="dep-link" src="{{ asset('img/link.png') }}" alt="dep-link">
                             </a>
-                            @else
-                                <img class="dep-link" src="{{ asset('img/link.png') }}" alt="dep-link"
-                                style="opacity:.5"
-                                >
-                            @endif
                         </td>
                         <td style="padding: 0; text-align:left;">
                            {{-- <textarea readonly style="width:100%; height:200px; resize:none; border:none;">{{ $question->content }}</textarea> --}}
