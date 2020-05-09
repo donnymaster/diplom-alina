@@ -5,11 +5,7 @@ namespace App\Http\Controllers\Moderator;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\NewWorkRequest;
-use App\Models\AcademicDegree;
-use App\Models\Departments;
 use App\Models\Employee;
-use App\Models\Facultes;
-use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Services\UserInfoService;
@@ -20,6 +16,7 @@ use App\Models\Feedback;
 use App\Models\FeedbackAnser;
 use App\Models\PlanWork;
 use App\Models\TypeWork;
+use App\Models\CategoryWork;
 use App\Models\Work;
 use App\Models\WorkKind;
 use App\Services\AddFileService;
@@ -37,6 +34,8 @@ use App\Services\ModeratorSortMessage;
 use App\Services\SortUserQuestion;
 use App\Services\SortUserRequestWork;
 use Illuminate\Support\Facades\DB;
+use App\Services\ServiceCheckFiles;
+use App\Services\ServiceUpdateFiles;
 
 class ModeratorController extends Controller
 {
@@ -479,51 +478,159 @@ class ModeratorController extends Controller
 
 
     public function updateWorkPart(Request $request){
-        dd($request->all());
-        // обновления поля с долей человека 
-        
-        
+        // dd($request->all());
+        $valid = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'work_id' => 'required|exists:plan_works,id',
+            'work_type_id' => 'required|exists:works,id'
+        ]);
+            // проверка на нулевую часть
+        if($request['user-count'] == 0){
+            return redirect()->route('moderator.work', ['id' => $valid['work_id']]);
+        }
+        // поиск работы
+        $work = PlanWork::where([
+            ['id', '=', $valid['work_id']],
+            ['employee_id', '=', $valid['employee_id']]
+        ])->first();
+            // работа с файлами
+        $result_files = array();
+       if(json_decode($work->materials) != null){
+        $result_files = ServiceCheckFiles::check($request, json_decode($work->materials));
+       }
+  
+       // проверки на возможность обновления
+       $check_result = PlanWork::with('employee')
+            ->where([
+                'title' => $request['title'],
+                'work_id' => $valid['work_type_id'],
+
+            ])->whereNotIn('id', [$valid['work_id']])
+            ->get();
+            // подсчет количества долей
+            $count_users_share = $check_result->reduce(function($current, $item){
+                return $current + $item->user_count;
+            });
+
+            if($count_users_share < 1){
+                if(($request['user-count'] + $count_users_share) <= 1){
+                    // обновление работы
+                    $files = ServiceUpdateFiles::update($request, $valid, $result_files);
+
+                   PlanWork::where([
+                        ['id', '=', $valid['work_id']],
+                        ['employee_id', '=', $valid['employee_id']]
+                    ])->first()->update([
+                        'user_count' => $request['user-count'],
+                        'materials' => $files 
+                    ]);
+                    return redirect()
+                    ->route('moderator.work', ['id' => $valid['work_id']])
+                    ->with(['successWork' => 'Робота була оновлена.']);
+                }else{
+                    // вывод сообщения что нельзя и вывод тех кто делал эту работу
+                    $error_messages = $check_result->map(function($item, $key){
+                        return 'Ви не можете оновити цю роботу так як дану роботу виконав '. $item->employee->name .' '
+                                . $item->employee->surname .' і його частка ' . $item->user_count;
+                    });
+                    // dd($error_messages);
+                    return redirect()
+                    ->route('moderator.work', ['id' => $valid['work_id']])
+                    ->with(['notAddWork' => $error_messages]);
+                }
+            }else{
+                    // вывод сообщения что нельзя и вывод тех кто делал эту работу
+                    $error_messages = $check_result->map(function($item, $key){
+                        return 'Ви не можете оновити цю роботу так як дану роботу виконав '. $item->employee->name .' '
+                                . $item->employee->surname .' і його частка ' . $item->user_count;
+                    });
+                    return redirect()
+                    ->route('moderator.work', ['id' => $valid['work_id']])
+                    ->with(['notAddWork' => $error_messages]);
+            }
+
+            return redirect()->route('moderator.work', ['id' => $valid['work_id']]);
     }
 
     public function addWork(){
+
         $user = Auth::user();
         $employee = $user->employee->name . ' ' . $user->employee->surname . ' ' . $user->employee->patronymic;
         $facultyName = $user->employee->departament->faculty->faculty_name;
         $departamentName =  $user->employee->departament->departament_name;
-
         $year = Carbon::now()->year;
         $date = Carbon::today()->toDateString();
-
         $work_kinds = WorkKind::all();
         $works = Work::all();
-        $type_work = TypeWork::all();
+        $type_work = TypeWork::with('category_name.category_work')->get();
+        $catygoty_work = CategoryWork::get();
 
+        $catygotyWork = response()->json($catygoty_work);
         $jsonWork = response()->json($works);
         $jsonWorkKinds = response()->json($work_kinds);
         $jsonTypeWork = response()->json($type_work);
+        $allDep = response()->json(DB::select('select * from departments'));
+        $facultes = DB::select('select * from facultes');
 
-        return view('moderator.work-add', compact('works' ,'work_kinds','type_work' ,'employee', 'facultyName', 'departamentName', 'year', 'date', 'jsonWork', 'jsonWorkKinds', 'jsonTypeWork'));
+        return view('moderator.work-add', compact('catygotyWork', 'facultes', 'allDep', 'works' ,'work_kinds','type_work' ,'employee', 'facultyName', 'departamentName', 'year', 'date', 'jsonWork', 'jsonWorkKinds', 'jsonTypeWork'));
     }
 
-    public function newWork(NewWorkRequest $request){
-        $valid = $request->validated();
+    public function newWork(NewWorkRequest $request)
+    {
+        $validated = $request->validated();
+        $count_users_share = 0;
+        $title_work = strtolower(trim($validated['work-title']));
 
-        $work = MakeWorkService::make($valid, true);
-
-        if($request->file('attachment')){
-            $files = new AddFileService($request->file('attachment'));
-            $json = $files->sendFileToFolder('works');  // отправляем файлы в папку app/uploads/{id}/works/hash/files
-            $work->materials = json_encode($json);
+        if($validated['user-count'] == 0){
+            return redirect()->route('moderator.addWork');
         }
 
-        try {
-            $work->save();
-        } catch (\Throwable $th) {
-            return back()->with(['errorMake' => $th->getMessage()])->withInput();
+        $check_result = PlanWork::with('employee')
+            ->where([
+                'title' => $title_work,
+                'work_id' => $validated['work']
+            ])->get();
+
+        if($check_result->count() == 0){
+            MakeWorkService::make($validated, $request, true)->save();
+            return redirect()
+            ->route('moderator.addWork')
+            ->with(['successWork' => 'Робота додана!']);
+        }else{
+            // подсчет количества долей
+            $count_users_share = $check_result->reduce(function($current, $item){
+                return $current + $item->user_count;
+            });
+            if($count_users_share < 1){
+                if(($validated['user-count'] + $count_users_share) <= 1){
+                    // создание работы
+                    MakeWorkService::make($validated, $request, true)->save();
+                    return redirect()
+                    ->route('moderator.addWork')
+                    ->with(['successWork' => 'Робота додана!']);
+                    //dd('создаем работу');
+                }else{
+                    // вывод сообщения что нельзя и вывод тех кто делал эту работу
+                    $error_messages = $check_result->map(function($item, $key){
+                        return 'Дану роботу виконав '. $item->employee->name .' '
+                                . $item->employee->surname .' і його частка ' . $item->user_count;
+                    });
+                    return redirect()
+                    ->route('moderator.addWork')
+                    ->with(['notAddWork' => $error_messages]);
+                }
+            }else{
+                    // вывод сообщения что нельзя и вывод тех кто делал эту работу
+                    $error_messages = $check_result->map(function($item, $key){
+                        return 'Дану роботу виконав '. $item->employee->name .' '
+                                . $item->employee->surname .' і його частка ' . $item->user_count;
+                    });
+                    return redirect()
+                    ->route('moderator.addWork')
+                    ->with(['notAddWork' => $error_messages]);
+            }
         }
-
-
-        return redirect()->route('moderator.addWork')->with(['successWork' => 'Робота додана!']);
+        return redirect()->route('moderator.addWork');
     }
 
     public function feedback(){

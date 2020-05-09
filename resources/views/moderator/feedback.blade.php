@@ -43,7 +43,8 @@
         <textarea class="text-input" name="content" required></textarea>
         <div class="form-buttom-group">
             <div class="add-files">
-                <p>Додаткові матеріали</p>
+                <p>Додаткові матеріали<span title="Ви можете додати {{ ini_get('max_file_uploads') }} файлів, розмір кожного файлу не
+                    повинен перевищувати {{ ini_get('post_max_size') }}" class="red">*</span></p>
                 <input type="file" id="files-add" name="attachment[]" multiple/>
             </div>
                 <button type="submit" id="form-send-f" class="btn-submit-input">Відправити</button>

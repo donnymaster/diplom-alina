@@ -18,7 +18,7 @@ class AddFileService{
      * Метод для перемещения файлов в указанною папку.
      *
      * @param string $folder
-     * @return json
+     * @return array
      */
     public function sendFileToFolder($folder, $user_id = false){
 
@@ -27,7 +27,7 @@ class AddFileService{
         }
 
         $JsonPath = array(); // array->json
-        // папки где будут хранится другие папки -> feedback, works ...
+        // папка где будут хранится другие папки -> feedback, works ...
         $directory = 'app/uploads/' . $user_id . '/' . $folder;
         // генерация уникального имени папки
         $unic_folder = md5(Auth::user()->id . Carbon::now('Europe/Kiev')->toDateTimeString());

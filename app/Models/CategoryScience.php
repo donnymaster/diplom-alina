@@ -16,4 +16,8 @@ class CategoryWork extends Model
     {
         return $this->belongsTo(CategoryName::class);
     }
+
+    public function plan_work(){
+        return $this->hasOne(PlanWork::class);
+    }
 }

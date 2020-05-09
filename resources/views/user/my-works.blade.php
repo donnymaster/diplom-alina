@@ -6,6 +6,7 @@
     <img src="{{ asset('img/next.png') }}" alt="next">
     <a href="{{ route('user.works') }}">Мої роботи</a>
 </div>
+
 <div class="user-works block-no-padding">
     @if (isset($noWorks))
         <h1 style="text-align: center;padding: 20px 0;">{{ $noWorks }}</h1>
@@ -100,10 +101,7 @@
                     Дата створення роботи
                 </th>
                 <th>
-                    Частка за планом
-                </th>
-                <th>
-                    Частка за фактом
+                    Ваша частка
                 </th>
                 <th>
                     Вид праці <span title="Тип виконаної роботи">*</span>
@@ -125,10 +123,7 @@
                         {{ $work->created_at->format('m/d/Y') }}
                     </td>
                     <td>
-                        {{ $work->percentage_plan }}
-                    </td>
-                    <td>
-                        {{ $work->percentage_fact }}
+                        {{ $work->user_count }}
                     </td>
                     <td>
                         {{ $work->work->indicator }}
@@ -175,59 +170,25 @@
                         >{{ $work->description }}</textarea>
                     </label>
                     <h3 class="work-title-h3">Характеристика роботи</h3>
-                    <table class="main-table form-work fix-table">
+                    <table class="main-table form-work fix-table">                  
                         <tr>
                             <td>
-                                <p>Норма на перший семестр за планом</td>
+                            <p>Ваша частка</p>
                             </td>
                             <td>
-                                {{ $work->norm_semester_1_plan }}
-                            </td>
-                        </tr>
-                        <tr>
-                           <td>
-                                <p>Норма на другий семестр за планом</p>
-                           </td>
-                           <td>
-                            {{ $work->norm_semester_2_plan }}
-                           </td>
-                        </tr>
-                        <tr>
-                            <td>
-                            <p>Кількість за планом</p>
-                            </td>
-                            <td>
-                                {{ $work->count_plan }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p>Частка за планом</p>
-                            </td>
-                            <td>
-                                {{ $work->percentage_plan }}
+                                {{ $work->user_count }}
                             </td>
                         </tr>
                         <tr>
                             <td><p>Дата запису плану</p></td>
                             <td>{{ $work->created_at->format('m/d/Y') }}</td>
                         </tr>
-                        <tr>
-                            <td><p>Норма на перший семестр за фактом</p></td>
-                            <td>{{ $work->norm_semester_1_fact }}</td>
-                        </tr>
-                        <tr>
-                            <td><p>Норма на другий семестр за фактом</p></td>
-                            <td>{{ $work->norm_semester_2_fact }}</td>
-                        </tr>
-                        <tr>
-                            <td><p>Кількість фактичне</p></td>
-                            <td>{{ $work->count_fact }}</td>
-                        </tr>
-                        <tr>
-                            <td><p>Частка факт</p></td>
-                            <td>{{ $work->percentage_fact }}</td>
-                        </tr>
+                        @isset($work->category_science)
+                            <tr>
+                                <td><p>Тип виконуваної роботи</p></td>
+                                <td>{{ $work->category_science->category_name }}</td>
+                            </tr>
+                        @endisset
                     </table>
                 </form>
                 @if ($work->materials)

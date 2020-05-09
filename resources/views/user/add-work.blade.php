@@ -152,7 +152,8 @@
         </div>
         <div class="form-buttom-group">
             <div class="add-files">
-                <p>Додаткові матеріали <span title="Ви можете додати 20 файлів, розмір кожного файлу не повинен перевищувати 2GB" class="red">*</span></p>
+                <p>Додаткові матеріали <span title="Ви можете додати {{ ini_get('max_file_uploads') }} файлів, розмір кожного файлу не
+                     повинен перевищувати {{ ini_get('post_max_size') }}" class="red">*</span></p>
                 <input type="file" id="files-add" name="attachment[]" multiple class="file-input"/>
             </div>
             <button type="submit" id="form-send-f" class="btn-submit-input">Відправити</button>
@@ -169,6 +170,7 @@
        var works = {!! json_encode($jsonWork) !!};
        var workKinds = {!! json_encode($jsonWorkKinds) !!};
        var typeWork = {!! json_encode($jsonTypeWork) !!};
+       var catygotyWork = {!! json_encode($catygotyWork) !!};
        var selectTypeWork = document.getElementById('t-work');
        var type_work_options = selectTypeWork.querySelectorAll('option');
        var selectKindWork = document.getElementById('k-work');
@@ -184,10 +186,28 @@
                     nameWork = item.label;
                 }
             });
-            setCategoryWork(nameWork);
+            setIsScinceWork();
             setKindWork();
        });
 
+       setIsScinceWork();
+       function setIsScinceWork(){
+            while (category_work.firstChild) {
+                    category_work.removeChild(category_work.firstChild);
+            }
+            if(selectTypeWork.options[selectTypeWork.selectedIndex].text == 'Наукова робота'){
+                catygotyWork.original.forEach(function(item){
+                    var buff_option = document.createElement('option');
+                    buff_option.value = item.id;
+                    buff_option.innerText = item.category_name;
+                    category_work.append(buff_option);
+                });
+            }else{
+                var buff_option = document.createElement('option');
+                buff_option.innerText = "відсутні";
+                category_work.append(buff_option);
+            }         
+       }
 
        function startSetCategory(){
         var nameWork = "", _this = this;
@@ -196,39 +216,9 @@
                     nameWork = item.label;
                 }
             });
-            setCategoryWork(nameWork);
        }
 
-       // function set category type work
-       function setCategoryWork(nameWork){
-        typeWork.original.forEach(function(item){
-                if(item.category_name != null){
-                    if(item.name_type_work == nameWork){
-                        isCategoryWork = item.category_name.category_work;
-                    }
-                }
-            });
-            // console.log(isCategoryWork);
-            if(isCategoryWork != null){
-                    while (category_work.firstChild) {
-                        category_work.removeChild(category_work.firstChild);
-                }
-                for(var iter = 0; iter < isCategoryWork.length; iter++){
-                    var buff_option = document.createElement('option');
-                    buff_option.value = isCategoryWork[iter].id;
-                    buff_option.innerText = isCategoryWork[iter].category_name;
-                    category_work.append(buff_option);
-                }
-                isCategoryWork = null;
-            }else{
-                while (category_work.firstChild) {
-                    category_work.removeChild(category_work.firstChild);
-            }
-                var no_option = document.createElement('option');
-                no_option.innerText = "відсутні";
-                category_work.append(no_option);
-            }
-       }
+       
 
        setKindWork();
 

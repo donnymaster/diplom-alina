@@ -10,16 +10,24 @@
     <a href="{{ route('moderator.index') }}">Головна</a>
 
 </div>
+
 <div class="user-add-work block">
     <div class="info-author">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-        @if (session('errorUpdate'))
-            <div class="">
-                {{ session()->get('errorUpdate') }}
+       @if($errors->all() != array())
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+       @endif
+       @if (session('notAddWork'))
+            <div class="wrapped-new-user-error">
+                <p class="red">Ви не можете додати роботу тому що:</p>
+                <ul>
+                    @foreach (session()->get('notAddWork') as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
         @if (session('successWork'))
@@ -84,8 +92,14 @@
                        </form>
                     </div>
                 </div>
-            <input type="text" id="user" class="text-input" readonly value="{{$work->employee->name . ' ' . $work->employee->surname . ' ' . $work->employee->patronymic}}">
+                <input type="text" id="user" class="text-input" readonly value="{{$work->employee->name . ' ' . $work->employee->surname . ' ' . $work->employee->patronymic}}">
             </label>
+            <form action="{{ route("moderator.updateWorkPart") }}" id="form-update" method="POST" enctype="multipart/form-data">
+            <input type="text" name="work_id" hidden value="{{ $work->id }}">
+            <input type="text" name="employee_id" hidden value="{{ $work->employee_id }}">
+            <input type="text" name="title" hidden value="{{ $work->title }}">
+            <input type="text" name="work_type_id" hidden value="{{ $work->work_id }}">
+            
             <div class="wrap-el ">
                 <label for="faculty" style="flex:1">
                     <p>Факультет</p>
@@ -103,7 +117,6 @@
                     <p>Дата запису плану</p>
                     <input type="text" id="date-plane" class="text-input" readonly value="{{$work->created_at->format('m/d/Y')}}">
                 </label>
-            <form action="{{ route("moderator.updateWorkPart") }}" id="form-update" method="POST" enctype="multipart/form-data">
                 @csrf
                 <label for="date-plane" style="flex:0.3">
                     <p style="color:black">Частка</p>
@@ -113,12 +126,13 @@
             <div class="border-b">
                 <div class="button-work">
                     @if ($work->materials)
-                        <p class="dop-materials">Додаткові матеріали </p>
+                        <p class="dop-materials">Додаткові матеріали  <span title="Ви можете додати {{ ini_get('max_file_uploads') }} файлів, розмір кожного файлу не
+                            повинен перевищувати {{ ini_get('post_max_size') }}" class="red">*</span></p>
                         <table class="main-table form-work" style="display: inline-block; border: none; width: auto;">
                             @foreach (json_decode($work->materials) as $item)
                             <tr data-id="{{ $loop->index }}" class="file-item">
                                 <td>
-                                <input type="text" name="file-{{$loop->index}}" hidden value="{{$item->title . md5($item->link)}}">
+                                <input type="text" name="file-{{$loop->index}}" hidden value="{{$item->link}}">
                                 <a href="{{ URL::to($item->link) }}">{{ $item->title }}</a>
                                 </td>
                                 <td class="min-h-50">
@@ -143,85 +157,10 @@
             </div>
         @endforeach
     </div>
+</form>
     <input type="text" hidden id="max_file_size" value="{{ ini_get('post_max_size') }}">
     <input type="text" hidden id="max_file_uploads" value="{{ ini_get('max_file_uploads') }}">
     <input type="text" hidden id="memory_limit" value="{{ ini_get('memory_limit') }}">
-
-    <form action="{{ route('moderator.editWork') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-            {{-- <div class="status">
-                <h2>Статус: {{$work->status ? 'схвалено' : 'в очікуванні схвалення'}}</h2>
-            </div> --}}
-            {{-- <div class="change-status">
-                <input type="radio" id="contactChoice2"
-                name="status"
-                {{ $work->status ? 'checked' : null }}
-                value="yes">
-                <label for="contactChoice2">Схвалити</label>
-
-                <input type="radio" id="contactChoice3"
-                name="status"
-                {{ !$work->status ? 'checked' : null }}
-                value="no">
-                <label for="contactChoice3">Перенести в статус очікування</label>
-            </div> --}}
-
-            {{-- <div class="type-work">
-                <label for="t-work">
-                    <p>Тип роботи</p>
-                    <select id="t-work">
-                        @foreach ($type_work as $twork)
-                            <option value="{{ $twork->id }}"
-                        {{ $work->work->work_kind->typeWork->name_type_work == $twork->name_type_work ? 'selected' : null }}
-                            >{{ $twork->name_type_work }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <label for="k-work">
-                    <p>Назва виду роботи</p>
-                    <select id="k-work">
-                        @foreach ($work_kinds as $wkind)
-                            <option value="{{ $wkind->id }}">{{ $wkind->kind_name }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <label for="ratio">
-                    <p>Робота</p>
-                    <select name="work" id="ratio">
-                        @foreach ($works as $work1)
-                            <option value="{{ $work1->id }}">{{ $work1->indicator }}</option>
-                        @endforeach
-                    </select>
-
-                </label>
-            </div> --}}
-        {{-- <div class="content-work">
-            <label for="work-title">
-                <p>Назва роботи</p>
-                <input value="{{ $work->title }}" type="text" name="work-title" required id="work-title" class="text-input">
-            </label>
-            <p>Опис роботи</p>
-            <textarea class="text-input" name="desc-work" required>{{ $work->description }}</textarea>
-        </div>
-        <div class="form-buttom-group">
-            <input type="file" name="attachment[]" multiple/>
-            <div class="group-btnff">
-                <button type="submit" class="btn-submit-input">Оновити</button>
-            </div>
-        </div>
-        @if ($work->materials)
-            <p class="dop-materials">Додаткові матеріали</p>
-            <table class="main-table form-work" style="display: inline-block; border: none; width: auto;">
-                @foreach (json_decode($work->materials) as $item)
-                <tr>
-                    <td>
-                    <a href="{{ URL::to($item->link) }}">{{ $item->title }}</a>
-                    </td>
-                </tr>
-                @endforeach
-            </table>
-        @endif
-    </form> --}}
 </div>
 <div class="overlay"></div>
 @endsection

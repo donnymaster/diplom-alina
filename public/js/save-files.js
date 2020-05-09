@@ -12,8 +12,15 @@ class SaveFiles{
     }
 
     str_number(str){
-        if(typeof str == "number") str;
-        return parseInt(str, 10);
+        if(str.indexOf('M') != -1){
+            return (parseInt(str, 10) / 1024);
+        }
+
+        if(str.indexOf('GB') != -1){
+            return parseInt(str, 10);
+        }
+
+       return parseInt(str, 10);
     }
 
     get_btn(){

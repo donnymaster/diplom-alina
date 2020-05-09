@@ -19,11 +19,16 @@ class MakeWorkService{
         $work->description = $valid['desc-work'];
         $work->title = $valid['work-title'];
         $work->user_count = $valid['user-count'];
+        
         if($valid['category_work']){
             $work->category_id = $valid['category_work'];
         }
+        if($valid['category_work'] == 'відсутні'){
+            $work->category_id = null;
+        }else{
+            $work->category_id = null;
+        }
         $work->status = $st;
-
         if($request->file('attachment')){
             $files = new AddFileService($request->file('attachment'));
             $json = $files->sendFileToFolder('works');  // отправляем файлы в папку app/uploads/{id}/works/hash/files

@@ -153,7 +153,7 @@ class UserController extends Controller
                 ['employee_id', '=', $user_id],
                 ['status', '=', 1]
             ])
-            ->with('work')
+            ->with(['work', 'category_science'])
             ->paginate(15);
         }
         if($works->count() == 0){ // записи отсутствуют

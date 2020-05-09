@@ -22,7 +22,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 1; $get_req['type'] = 'desc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -32,7 +32,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 1; $get_req['type'] = 'asc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -45,7 +45,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 2; $get_req['type'] = 'desc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -55,7 +55,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 2; $get_req['type'] = 'asc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -68,7 +68,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 3; $get_req['type'] = 'desc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -78,7 +78,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 3; $get_req['type'] = 'asc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -91,7 +91,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 4; $get_req['type'] = 'desc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -101,7 +101,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 4; $get_req['type'] = 'asc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -114,7 +114,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 5; $get_req['type'] = 'desc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;
@@ -124,7 +124,7 @@ class SortUserWork{
                             ['employee_id', '=', $user_id],
                             ['status', '=', 1]
                         ])
-                        ->with('work')
+                        ->with(['work', 'category_science'])
                         ->paginate(15);
                         $get_req['val'] = 5; $get_req['type'] = 'asc';
                         $buffer['value'] = $works; $buffer['get'] = $get_req;

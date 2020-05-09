@@ -13,6 +13,7 @@ use App\Services\GetInfoUniversity;
 use App\Services\MakeWorkService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CategoryWork;
 use Illuminate\Support\Facades\DB;
 
 class PlanWorkController extends Controller
@@ -28,14 +29,16 @@ class PlanWorkController extends Controller
         $work_kinds = WorkKind::all();
         $works = Work::all();
         $type_work = TypeWork::with('category_name.category_work')->get();
+        $catygoty_work = CategoryWork::get();
 
+        $catygotyWork = response()->json($catygoty_work);
         $jsonWork = response()->json($works);
         $jsonWorkKinds = response()->json($work_kinds);
         $jsonTypeWork = response()->json($type_work);
         $allDep = response()->json(DB::select('select * from departments'));
         $facultes = DB::select('select * from facultes');
 
-        return view('user.add-work', compact('facultes', 'allDep', 'works' ,'work_kinds','type_work' ,'employee', 'facultyName', 'departamentName', 'year', 'date', 'jsonWork', 'jsonWorkKinds', 'jsonTypeWork'));
+        return view('user.add-work', compact('catygotyWork', 'facultes', 'allDep', 'works' ,'work_kinds','type_work' ,'employee', 'facultyName', 'departamentName', 'year', 'date', 'jsonWork', 'jsonWorkKinds', 'jsonTypeWork'));
 
     }
 
@@ -101,50 +104,5 @@ class PlanWorkController extends Controller
             }
         }
         return redirect()->route('user.addWork');
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
     }
 }
